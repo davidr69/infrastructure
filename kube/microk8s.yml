@@ -1,0 +1,87 @@
+---
+- name: Automate MicroK8s and Kubernetes Deployments
+  hosts: your_kube_server
+  become: yes
+  vars:
+    k8s_deployments:
+      - repo_url: https://bitbucket.org/drosario69/finances.git
+        namespace: finances
+        deployment_file: finances-deploy.yml
+      - repo_url: https://bitbucket.org/drosario69/songlist.git
+        namespace: songlist
+        deployment_file: songlist-deploy.yml
+      - repo_url: https://bitbucket.org/drosario69/articles.git
+        namespace: articles
+        deployment_file: articles-deploy.yml
+      - repo_url: https://bitbucket.org/drosario69/berean.git
+        namespace: berean
+        deployment_file: finances-deploy.yml
+      - repo_url: https://bitbucket.org/drosario69/registry-ui.git
+        namespace: registry-ui
+        deployment_file: registryui-deploy.yml
+      - repo_url: https://bitbucket.org/drosario69/serverless.git
+        namespace: serverless
+        deployment_file: serverless-deploy.yml
+
+  tasks:
+    - name: Install MicroK8s via Snap
+      ansible.builtin.snap:
+        name: microk8s
+        state: present
+        classic: true
+
+    - name: Ensure MicroK8s is in a ready state
+      ansible.builtin.command: microk8s.status --wait-ready
+      register: microk8s_status
+      changed_when: microk8s_status.rc != 0
+
+    - name: Enable required MicroK8s addons
+      ansible.builtin.command: "microk8s.enable {{ item }}"
+      loop:
+        - dns
+        - ingress
+        - metrics-server
+        - registry
+
+    - name: Configure Containerd for local registry
+      ansible.builtin.blockinfile:
+        path: /var/snap/microk8s/current/args/certs.d/pi4apps:5000.toml
+        create: true
+        block: |
+          server = "http://pi4apps:5000"
+  
+          [host."http://pi4apps:5000"]
+            capabilities = ["pull", "resolve"]
+      notify: Restart MicroK8s
+
+    - name: Add kubectl alias to .bash_aliases
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_user_dir }}/.bash_aliases"
+        line: "alias kubectl='microk8s.kubectl'"
+        create: true
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+
+    - name: Clone deployment repositories from Bitbucket
+      ansible.builtin.git:
+        repo: "{{ item.repo_url }}"
+        dest: "/tmp/{{ item.namespace }}"
+        clone: yes
+        update: yes
+      loop: "{{ k8s_deployments }}"
+
+    - name: Create Kubernetes namespaces and deploy applications
+      ansible.builtin.command: >
+        microk8s.kubectl apply -f "{{ item.1 }}" -n "{{ item.0.namespace }}"
+      loop: "{{ k8s_deployments | product(files_in_repos.results | selectattr('item.namespace', 'equalto', item.0.namespace) | map(attribute='files') | flatten) }}"
+      when: item.1 is match(".*\\.yml$") or item.1 is match(".*\\.yaml$")
+      loop_control:
+        label: "Deploying {{ item.1 }} in namespace {{ item.0.namespace }}"
+      vars:
+        files_in_repos: "{{ lookup('fileglob', '/tmp/*/finances-deploy.yml', wantlist=True) | list }}"
+
+  handlers:
+    - name: Restart MicroK8s
+      ansible.builtin.command: microk8s.stop && microk8s.start
+      listen: "Restart MicroK8s"
