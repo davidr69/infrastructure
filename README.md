@@ -44,7 +44,7 @@ Docker
 - bind9
 - MongoDB
 - squid
-- vault
+- [HashiCorp Vault](vault)
 
 
 ## kube ##
