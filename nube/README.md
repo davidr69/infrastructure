@@ -1,58 +1,48 @@
 # Hashicorp Vault
 
+The “vault” command must be run on a machine with access to the
+Vault server. In these examples, it is run locally and requires
+that the `VAULT_ADDR` environment variable be set:
+
 ```shell
 $ export VAULT_ADDR=http://127.0.0.1:8201
+```
 
-$ vault write auth/approle/role/vault-role \
+From the Vault UI, define policies:
+
+![vault policies](images/vault_policy.png)
+
+Create an AppRole auth method. The name of the role
+in this example is `dev-role` and maps to the `lavacro_dev` policy:
+
+```shell
+$ vault write auth/approle/role/dev-role \
     secret_id_ttl=0 \
     token_num_uses=0 \
     token_ttl=1h \
     token_max_ttl=4h \
-    policies="lavacro_prod"
+    policies="lavacro_dev"
 ```
 
-![vault read](images/vault_read.png)
+Obtain the generated RoleID:
 
-$ vault read auth/approle/role/vault-role/role-id
+$ vault read auth/approle/role/dev-role/role-id
 
+![vault_read_role_id](images/vault_read_role.png)
+
+Create a SecretID for the AppRole:
+
+```shell
 $ vault write -f auth/approle/role/vault-role/secret-id
+```
 
+![vault_create_secret_id](images/vault_create_secret.png)
 
-## Vault Policies
+Validate that the RoleID and SecretID can be used to obtain
+a token:
 
-### Read/Write Secret Values
-path "lavacro/data/prod/*" {
-  capabilities = ["create", "read", "update", "delete", "list"]
-}
+```shell
+$ vault write auth/approle/login role_id="{ROLE_ID}" secret_id="{SECRET_ID}"
+```
 
-### Allow listing, deleting versions, metadata
-path "lavacro/metadata/prod/*" {
-  capabilities = ["read", "list", "delete"]
-}
-
-# The standard KV V2 data path
-path "lavacro/data/prod/*" {
-capabilities = ["read", "list"]
-}
-
-# The path as seen by the application request
-path "lavacro/prod/*" {
-capabilities = ["read", "list"]
-}
-
-
-
-$ vault write auth/approle/login 
-
-
-VAULT_TOKEN="***" vault kv get lavacro/prod/database/postgresql
-
-
-Generate a new one (vault write -f auth/approle/role/vault-role/secret-id).
-
-Update the script.
-
-Revoke the old one using its accessor.
-
-$ VAULT_TOKEN="hvs.******" vault kv get lavacro/prod/database/postgresql
-Error making API request.
+![vault_get_token](images/vault_get_token.png)
