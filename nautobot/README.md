@@ -3,23 +3,12 @@
 
 
 
-```text
-╭────────────┬──────────────┬─────────┬────────────────╮
-│    Name    │  Kind/Image  │  State  │ IPv4/6 Address │
-├────────────┼──────────────┼─────────┼────────────────┤
-│ bos-acc-01 │ ceos         │ running │ 172.17.0.3     │
-│            │ ceos:4.32.0F │         │ N/A            │
-├────────────┼──────────────┼─────────┼────────────────┤
-│ bos-rtr-01 │ ceos         │ running │ 172.17.0.2     │
-│            │ ceos:4.32.0F │         │ N/A            │
-╰────────────┴──────────────┴─────────┴────────────────╯
-```
-
 ```shell
 containerlab deploy --topo ceos-lab.clab.yml --node-filter bos-acc-01,bos-rtr-01
 containerlab destroy --topo ceos-lab.clab.yml --node-filter bos-acc-01,bos-rtr-01
 ```
 
+![containerlab](images/containerlab.png)
 
 ```python
 from netmiko import ConnectHandler
@@ -48,7 +37,7 @@ System MAC address: 001c.7314.b2a8
 Software image version: 4.32.0F-36401836.4320F (engineering build)
 Architecture: x86_64
 Internal build version: 4.32.0F-36401836.4320F
-Internal build ID: e97bbe15-478c-45d1-84fa-332db23aef84
+Internal build ID: e97bbe15-478c-45d1-84fa-3323aef84
 Image format version: 1.0
 Image optimization: None
 
@@ -58,5 +47,4 @@ Kernel version: 6.5.0-1025-azure
 Uptime: 4 minutes
 Total memory: 8119864 kB
 Free memory: 1232352 kB
-
 ```
