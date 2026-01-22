@@ -12,7 +12,7 @@ I have 4 onsite servers, and each is running one or more services:
 - postgresql
 - HA Proxy
 
-- LXC:
+- [LXC](lxc):
   - jumphost
   - kafka
   - ftp
@@ -27,7 +27,7 @@ I have 4 onsite servers, and each is running one or more services:
 
 ## automation host ##
 
-- Nautobot
+- [Nautobot](nautobot)
 - Docker
   - pi-hole
   - ceos router and switch images
