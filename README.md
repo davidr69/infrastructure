@@ -3,7 +3,7 @@
 In the event there is a catastrophic event for any of my infrastructure and/or
 services running on them, this is what be required to recreate them.
 
-I have 4 onsite services, and each server is running one or more services:
+I have 4 onsite servers, and each is running one or more services:
 
 ## server ##
 
@@ -13,14 +13,14 @@ I have 4 onsite services, and each server is running one or more services:
 - HA Proxy
 
 - LXC:
-- - jumphost
-- - kafka
-- - ftp
-- - infrastructure
+  - jumphost
+  - kafka
+  - ftp
+  - infrastructure
 
 ## pi4apps ##
 
-Docker
+[Docker](docker)
 - redis
 - gitea
 - registry
@@ -29,8 +29,8 @@ Docker
 
 - Nautobot
 - Docker
-- - pi-hole
-- - ceos router and switch images
+  - pi-hole
+  - ceos router and switch images
 - SMTP: postfix
 - IMAP: dovecot
 
