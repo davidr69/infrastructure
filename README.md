@@ -14,7 +14,7 @@ I have 4 onsite servers, and each is running one or more services:
 
 - [LXC](lxc):
   - jumphost
-  - kafka
+  - [kafka](kafka)
   - ftp
   - infrastructure
 
