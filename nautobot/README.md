@@ -1,7 +1,21 @@
 # Nautobot
 
 
+## Installation
 
+### PostGreSQL
+
+
+```postgresql
+CREATE DATABASE nautobot;
+CREATE USER nautobot WITH PASSWORD '*****';
+GRANT ALL PRIVILEGES ON DATABASE nautobot TO nautobot;
+\connect nautobot
+GRANT CREATE ON SCHEMA public TO nautobot;
+\q
+```
+
+### Virtual network devices
 
 ```shell
 containerlab deploy --topo ceos-lab.clab.yml --node-filter bos-acc-01,bos-rtr-01
