@@ -17,12 +17,54 @@ GRANT CREATE ON SCHEMA public TO nautobot;
 
 ### Virtual network devices
 
+For static IP addresses to containerlab devices and unique segment,
+customize the `ceos-lab.clab.yml` file. This also provides the ability
+to establish routing from development environments without confusing
+overlapping Docker networks, since they have the same default networks:
+
+```yaml
+---
+name: "ceos-lab"
+prefix: ""
+
+mgmt:
+  network: "network-lab"
+  ipv4-subnet: "172.24.78.0/24"
+
+topology:
+  kinds:
+    ceos:
+      image: "ceos:4.32.0F"
+
+  nodes:
+    bos-acc-01:
+      kind: "ceos"
+      mgmt-ipv4: "172.24.78.11"
+      startup-config: "startup-configs/bos-acc-01.conf"
+
+    bos-rtr-01:
+      kind: "ceos"
+      mgmt-ipv4: "172.24.78.12"
+      startup-config: "startup-configs/bos-rtr-01.conf"
+```
+
+Startup and shutdown:
+
 ```shell
 containerlab deploy --topo ceos-lab.clab.yml --node-filter bos-acc-01,bos-rtr-01
 containerlab destroy --topo ceos-lab.clab.yml --node-filter bos-acc-01,bos-rtr-01
 ```
 
 ![containerlab](images/containerlab.png)
+
+### For streaming telemetry
+
+```text
+ceos-02(config)#management api gnmi
+ceos-02(config-mgmt-api-gnmi)#transport grpc default
+```
+
+Interacting directly with the devices using Netmiko:
 
 ```python
 from netmiko import ConnectHandler
