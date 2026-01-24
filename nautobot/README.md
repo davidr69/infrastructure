@@ -62,6 +62,12 @@ containerlab destroy --topo ceos-lab.clab.yml --node-filter bos-acc-01,bos-rtr-0
 ```text
 ceos-02(config)#management api gnmi
 ceos-02(config-mgmt-api-gnmi)#transport grpc default
+ceos-02(config-mgmt-api-gnmi)#provider eos-native
+ceos-02(config-mgmt-api-gnmi)#provider openconfig
+ceos-02(config-mgmt-api-gnmi)#no shutdown
+
+ceos-02(config)#management api models
+ceos-02(config-mgmt-api-models)#provider openconfig
 ```
 
 Interacting directly with the devices using Netmiko:
