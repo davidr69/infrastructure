@@ -1,5 +1,17 @@
 # kafka
 
+## create topics
+
+## increase partitions
+
+```shell
+$ kafka-topics.sh --bootstrap-server kafka.lavacro.net:9092 \
+                --alter \
+                --topic traffic-topic-00 \
+                --partitions 4
+```
+
+
 ## server.properties
 
 ```text

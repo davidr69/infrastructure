@@ -62,3 +62,15 @@ Uptime: 4 minutes
 Total memory: 8119864 kB
 Free memory: 1232352 kB
 ```
+
+## upgrade
+
+```shell
+$ pip install --upgrade nautobot
+$ pip install -U nautobot-device-onboarding nautobot-golden-config nautobot-dns-models nautobot-plugin-nornir nautobot-capacity-metrics nautobot-ssot
+
+$ nautobot-server collectstatic
+$ nautobot-server migrate
+
+$ systemctl restart nautobot nautobot-worker nautobot-scheduler
+```
