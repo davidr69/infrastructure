@@ -12,9 +12,9 @@ I have 4 onsite servers, and each is running one or more services:
 - postgresql
 - HA Proxy
 
-- [LXC](lxc):
+- [LXC](lxc/README.md):
   - jumphost
-  - [kafka](kafka)
+  - [kafka](kafka/README.md)
   - ftp
   - infrastructure
 
@@ -27,10 +27,10 @@ I have 4 onsite servers, and each is running one or more services:
 
 ## automation host ##
 
-- [Nautobot](nautobot)
+- [Nautobot](nautobot/README.md)
 - Docker
   - pi-hole
-  - ceos router and switch images
+  - [ceos router and switch images](ceos/README.md)
 - SMTP: postfix
 - IMAP: dovecot
 
@@ -44,7 +44,7 @@ I have 4 onsite servers, and each is running one or more services:
 - bind9
 - MongoDB
 - squid
-- [HashiCorp Vault](vault)
+- [HashiCorp Vault](vault/README.md)
 
 
 ## kube ##
