@@ -3,9 +3,37 @@
 ### Virtual network devices
 
 For static IP addresses to containerlab devices and unique segment,
-customize the `ceos-lab.clab.yml` file. This also provides the ability
-to establish routing from development environments without confusing
-overlapping Docker networks, since they have the same default networks:
+customize the `ceos-lab.clab.yml` file. The virtual devices will only
+be accessible from the host machine, and no type of network configuration
+seemed to help (e.g. macvlan). After **MANY** hours of troubleshooting and
+failed attempts, I resorted to creating virtual IP addresses and proxying
+from those to the containerlab counterparts using `rinetd`.
+
+
+```shell
+containerlab deploy --topo ceos-lab.clab.yml --node-filter bos-acc-01,bos-rtr-01
+```
+
+
+```yaml
+network:
+  version: 2
+  ethernets:
+    enp1s0:
+      addresses:
+        - "192.168.3.24/24"
+        - "192.168.3.242/32"
+        - "192.168.3.243/32"
+```
+
+
+```shell
+systemctl disable --now ssh.socket
+systemctl enable --now ssh.service
+systemctl restart ssh
+systemctl restart rinetd
+```
+
 
 ```yaml
 ---
@@ -24,14 +52,18 @@ topology:
   nodes:
     bos-acc-01:
       kind: "ceos"
-      mgmt-ipv4: "172.24.78.11"
+      mgmt-ipv4: "172.24.78.12"
       startup-config: "startup-configs/bos-acc-01.conf"
 
     bos-rtr-01:
       kind: "ceos"
-      mgmt-ipv4: "172.24.78.12"
+      mgmt-ipv4: "172.24.78.11"
       startup-config: "startup-configs/bos-rtr-01.conf"
+
+  links:
+    - endpoints: ["bos-acc-01:eth1", "bos-rtr-01:eth1"]
 ```
+
 
 Startup and shutdown:
 
