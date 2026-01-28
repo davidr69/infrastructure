@@ -1,19 +1,23 @@
 # Arista cEOS containerlab lab
 
-### Virtual network devices
+## Virtual network devices
 
-For static IP addresses to containerlab devices and unique segment,
-customize the `ceos-lab.clab.yml` file. The virtual devices will only
-be accessible from the host machine, and no type of network configuration
-seemed to help (e.g. macvlan). After **MANY** hours of troubleshooting and
-failed attempts, I resorted to creating virtual IP addresses and proxying
-from those to the containerlab counterparts using `rinetd`.
+The cEOS devices are orchestrated by containerlab and deployed as Docker
+containers. If Docker is already managing other containers (e.g.: Pi-Hole),
+making the cEOS containers accessible from outside the host becomes a
+challenge. The iptables rules created by containerlab conflict with
+those of Docker, and the other containers become inaccessible from outside
+the host.
 
+The path of least resistence is to create virtual IP addresses on the host
+and proxy those to the containerlab devices. If using the standard ssh
+ports for the cEOS devices, these conflict with the host's ssh service,
+as it is controlled by systemd and bound to all interfaces, including the
+virtual IP addresses. One possible solution is to disable the ssh.socket
+unit and enable the ssh.service unit instead. You can then bind the host's
+ssh service using sshd_config. The proxy service used here is `rinetd`.
 
-```shell
-containerlab deploy --topo ceos-lab.clab.yml --node-filter bos-acc-01,bos-rtr-01
-```
-
+### Create virtual IP addresses on host
 
 ```yaml
 network:
@@ -26,6 +30,7 @@ network:
         - "192.168.3.243/32"
 ```
 
+### sshd service
 
 ```shell
 systemctl disable --now ssh.socket
@@ -34,6 +39,16 @@ systemctl restart ssh
 systemctl restart rinetd
 ```
 
+### rinetd configuration, ssh and gnmi ports
+
+```text
+192.168.3.242	22	    172.24.78.11	22
+192.168.3.242	6030	172.24.78.11	6030
+192.168.3.243	22	    172.24.78.12	22
+192.168.3.243	6030	172.24.78.12	6030
+```
+
+### containerlab topology
 
 ```yaml
 ---
@@ -63,7 +78,6 @@ topology:
   links:
     - endpoints: ["bos-acc-01:eth1", "bos-rtr-01:eth1"]
 ```
-
 
 Startup and shutdown:
 
