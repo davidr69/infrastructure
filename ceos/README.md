@@ -7,7 +7,8 @@ containers. If Docker is already managing other containers (e.g.: Pi-Hole),
 making the cEOS containers accessible from outside the host becomes a
 challenge. The iptables rules created by containerlab conflict with
 those of Docker, and the other containers become inaccessible from outside
-the host.
+the host. Neither `host` nor `macvlan` networking modes are viable options
+in this scenario.
 
 The path of least resistence is to create virtual IP addresses on the host
 and proxy those to the containerlab devices. If using the standard ssh
@@ -17,7 +18,10 @@ virtual IP addresses. One possible solution is to disable the ssh.socket
 unit and enable the ssh.service unit instead. You can then bind the host's
 ssh service using sshd_config. The proxy service used here is `rinetd`.
 
-### Create virtual IP addresses on host
+### virtual IP addresses
+
+On this system, netplan is used to configure networking. Note that
+the VIPs must be /32 addresses:
 
 ```yaml
 network:
@@ -32,14 +36,18 @@ network:
 
 ### sshd service
 
+We need to disable the ssh.socket unit and enable the ssh.service unit:
+
 ```shell
-systemctl disable --now ssh.socket
-systemctl enable --now ssh.service
-systemctl restart ssh
-systemctl restart rinetd
+$ systemctl disable --now ssh.socket
+$ systemctl enable --now ssh.service
+$ systemctl restart ssh
+$ systemctl restart rinetd
 ```
 
-### rinetd configuration, ssh and gnmi ports
+### rinetd configuration
+
+We need access to both ssh and gnmi ports on each cEOS device:
 
 ```text
 192.168.3.242	22	    172.24.78.11	22
