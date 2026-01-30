@@ -104,7 +104,7 @@ ceos-02(config-mgmt-api-gnmi)#transport grpc default
 ceos-02(config-mgmt-api-gnmi)#provider eos-native
 ```
 
-Interacting directly with the devices using Netmiko:
+Sidebar ... if you want to interact directly with the devices using Netmiko:
 
 ```python
 from netmiko import ConnectHandler
@@ -147,6 +147,11 @@ Free memory: 1232352 kB
 
 ## gnmi gateway
 
+First, clone the gnmi-gateway repository and generate TLS certificates.
+Note that the certificates are only necessary if you are running the
+server component of gnmi-gateway. If you only need a client that publishes
+Kafka messages, the TLS step is unnecessary:
+
 ```shell
 $ git clone https://github.com/openconfig/gnmi-gateway.git
 $ cd gnmi-gateway
@@ -156,7 +161,7 @@ openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650 -subj 
 $ cp targets-example.yaml targets.yaml
 ```
 
-Edit targets.yaml with the actual target devices.
+Ensure you already have Go installed (version 1.20+).  Then:
 
 ```shell
 $ make build
@@ -174,7 +179,7 @@ go: downloading github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 gnmi-gateway version v0.12.0-97c850f (Built 2026-01-25T02:11:42Z)
 ```
 
-targets.json
+Edit `targets.json` with the actual target devices.
 
 ```json
 {
@@ -202,7 +207,7 @@ targets.json
   },
   "target": {
     "vrouter01.lavacro.net": {
-      "addresses": ["192.168.3.242:6030"],
+      "addresses": ["vrouter01.lavacro.net:6030"],
       "credentials": {
         "username": "****",
         "password": "****"
@@ -211,7 +216,7 @@ targets.json
       "meta": {"NoTLSVerify": "yes"}
     },
     "vswitch01.lavacro.net": {
-      "addresses": ["192.168.3.243:6030"],
+      "addresses": ["vswitch01.lavacro.net:6030"],
       "credentials": {
         "username": "****",
         "password": "****"
@@ -235,6 +240,6 @@ $ ./gnmi-gateway \
   -ExporterKafkaLogging
 ```
 
-verification:
+Verification (via IntelliJ's Kafka plugin):
 
 ![Kafka-IntelliJ](images/kafka-ij.png)
