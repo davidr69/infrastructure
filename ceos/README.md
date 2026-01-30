@@ -172,10 +172,69 @@ go: downloading github.com/PuerkitoBio/purell v1.1.1
 go: downloading github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 ./gnmi-gateway -version
 gnmi-gateway version v0.12.0-97c850f (Built 2026-01-25T02:11:42Z)
-$ ./gnmi-gateway -EnableGNMIServer \
-    -ServerTLSCert=server.crt \
-    -ServerTLSKey=server.key \
-    -TargetLoaders=simple \
-    -TargetJSONFile=targets.yaml \
-    -Exporters=debug
 ```
+
+targets.json
+
+```json
+{
+  "request": {
+    "default": {
+      "subscribe": {
+        "mode": "STREAM",
+        "prefix": { },
+        "subscription": [
+          {
+            "path": {
+              "elem": [
+                { "name": "interfaces" },
+                { "name": "interface", "key": { "name": "*" } },
+                { "name": "state" },
+                { "name": "counters" }
+              ]
+            },
+            "mode": "SAMPLE",
+            "sample_interval": 10000000000
+          }
+        ]
+      }
+    }
+  },
+  "target": {
+    "vrouter01.lavacro.net": {
+      "addresses": ["192.168.3.242:6030"],
+      "credentials": {
+        "username": "****",
+        "password": "****"
+      },
+      "request": "default",
+      "meta": {"NoTLSVerify": "yes"}
+    },
+    "vswitch01.lavacro.net": {
+      "addresses": ["192.168.3.243:6030"],
+      "credentials": {
+        "username": "****",
+        "password": "****"
+      },
+      "request": "default",
+      "meta": {"NoTLSVerify": "yes"}
+    }
+  }
+}
+```
+
+gnmi-gateway startup:
+
+```shell
+$ ./gnmi-gateway \
+  -TargetLoaders=json \
+  -TargetJSONFile=targets.json \
+  -Exporters=kafka \
+  -ExporterKafkaTopic=gnmi \
+  -ExporterKafkaBrokers=kafka.lavacro.net:9092 \
+  -ExporterKafkaLogging
+```
+
+verification:
+
+![Kafka-IntelliJ](images/kafka-ij.png)
