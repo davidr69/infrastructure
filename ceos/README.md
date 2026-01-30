@@ -206,7 +206,7 @@ Edit `targets.json` with the actual target devices.
     }
   },
   "target": {
-    "vrouter01.lavacro.net": {
+    "vrouter01": {
       "addresses": ["vrouter01.lavacro.net:6030"],
       "credentials": {
         "username": "****",
@@ -215,7 +215,7 @@ Edit `targets.json` with the actual target devices.
       "request": "default",
       "meta": {"NoTLSVerify": "yes"}
     },
-    "vswitch01.lavacro.net": {
+    "vswitch01": {
       "addresses": ["vswitch01.lavacro.net:6030"],
       "credentials": {
         "username": "****",
