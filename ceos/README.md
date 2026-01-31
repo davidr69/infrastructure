@@ -145,99 +145,78 @@ Total memory: 8119864 kB
 Free memory: 1232352 kB
 ```
 
-## gnmi gateway
+## gnmic
 
-First, clone the gnmi-gateway repository and generate TLS certificates.
-Note that the certificates are only necessary if you are running the
-server component of gnmi-gateway. If you only need a client that publishes
-Kafka messages, the TLS step is unnecessary:
+I spent a significant amount of time attempting to get `gnmi-gateway` working
+to no avail. As an alternative, I used `gnmic` to subscribe to gNMI telemetry
+and publish the data to Kafka.
 
-```shell
-$ git clone https://github.com/openconfig/gnmi-gateway.git
-$ cd gnmi-gateway
-$ make tls
-openssl ecparam -genkey -name secp384r1 -out server.key
-openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650 -subj "/CN=selfsigned.gnmi-gateway.local"
-$ cp targets-example.yaml targets.yaml
-```
-
-Ensure you already have Go installed (version 1.20+).  Then:
+Installation is a one-liner; you will require `sudo` access to install the binary:
 
 ```shell
-$ make build
-rm -f gnmi-gateway
-rm -f cover.out
-go build -o gnmi-gateway -ldflags "-X github.com/openconfig/gnmi-gateway/gateway.Version="v0.12.0-97c850f" -X github.com/openconfig/gnmi-gateway/gateway.Buildtime=2026-01-25T02:11:42Z" .
-go: downloading github.com/kelseyhightower/envconfig v1.4.0
-go: downloading github.com/Netflix/spectator-go v0.1.3
-go: downloading github.com/go-zookeeper/zk v1.0.2
-...
-go: downloading github.com/go-openapi/jsonreference v0.19.3
-go: downloading github.com/PuerkitoBio/purell v1.1.1
-go: downloading github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
-./gnmi-gateway -version
-gnmi-gateway version v0.12.0-97c850f (Built 2026-01-25T02:11:42Z)
+$ bash -c "$(curl -sL https://get-gnmic.openconfig.net)"
 ```
 
-Edit `targets.json` with the actual target devices.
-
-```json
-{
-  "request": {
-    "default": {
-      "subscribe": {
-        "mode": "STREAM",
-        "prefix": { },
-        "subscription": [
-          {
-            "path": {
-              "elem": [
-                { "name": "interfaces" },
-                { "name": "interface", "key": { "name": "*" } },
-                { "name": "state" },
-                { "name": "counters" }
-              ]
-            },
-            "mode": "SAMPLE",
-            "sample_interval": 10000000000
-          }
-        ]
-      }
-    }
-  },
-  "target": {
-    "vrouter01": {
-      "addresses": ["vrouter01.lavacro.net:6030"],
-      "credentials": {
-        "username": "****",
-        "password": "****"
-      },
-      "request": "default",
-      "meta": {"NoTLSVerify": "yes"}
-    },
-    "vswitch01": {
-      "addresses": ["vswitch01.lavacro.net:6030"],
-      "credentials": {
-        "username": "****",
-        "password": "****"
-      },
-      "request": "default",
-      "meta": {"NoTLSVerify": "yes"}
-    }
-  }
-}
-```
-
-gnmi-gateway startup:
+You can validate by subscribing to one target:
 
 ```shell
-$ ./gnmi-gateway \
-  -TargetLoaders=json \
-  -TargetJSONFile=targets.json \
-  -Exporters=kafka \
-  -ExporterKafkaTopic=gnmi \
-  -ExporterKafkaBrokers=kafka.lavacro.net:9092 \
-  -ExporterKafkaLogging
+$ gnmic subscribe \
+  --address vrouter01.lavacro.net:6030 \
+  --username **** \
+  --password **** \
+  --insecure \
+  --mode stream \
+  --sample-interval 10s \
+  --path /interfaces/interface/state/counters \
+  --path /system/state/current-datetime
+```
+
+Create `config.yml`:
+
+```yaml
+subscriptions:
+  if_counters:
+    paths:
+      - /interfaces/interface/state/counters
+    mode: stream
+    sample-interval: 10s
+
+  heartbeat:
+    paths:
+      - /system/state/current-datetime
+    mode: stream
+    sample-interval: 30s
+
+targets:
+  vrouter01:
+    address: vrouter01.lavacro.net:6030
+    username: ****
+    password: ****
+    insecure: true
+    subscriptions:
+      - if_counters
+      - heartbeat
+  vswitch01:
+    address: vswitch01.lavacro.net:6030
+    username: ****
+    password: ****
+    insecure: true
+    subscriptions:
+      - if_counters
+      - heartbeat
+
+outputs:
+  kafka_prod:
+    type: kafka
+    address: kafka.lavacro.net:9092
+    topic: gnmi
+    format: json
+```
+
+Run `gnmic` (with logging enabled):
+
+```shell
+$ gnmic subscribe --config gnmic.yml --log
 ```
 
 Verification (via IntelliJ's Kafka plugin):
