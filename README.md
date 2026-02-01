@@ -42,7 +42,7 @@ I have 4 onsite servers, and each is running one or more services:
 - Alertmanager
 - Grafana
 - bind9
-- MongoDB
+- [MongoDB](mongodb/README.md)
 - squid
 - [HashiCorp Vault](vault/README.md)
 
