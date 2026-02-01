@@ -145,6 +145,21 @@ Total memory: 8119864 kB
 Free memory: 1232352 kB
 ```
 
+## testing gRPC with grpcurl
+
+```shell
+$ grpcurl -plaintext -H "username:****" -H "password:****" vrouter01.lavacro.net:6030 list
+gnmi.gNMI
+gnoi.certificate.CertificateManagement
+gnoi.factory_reset.FactoryReset
+gnoi.file.File
+gnoi.os.OS
+gnoi.packet_link_qualification.LinkQualification
+gnoi.system.System
+grpc.reflection.v1.ServerReflection
+grpc.reflection.v1alpha.ServerReflection
+```
+
 ## gnmic
 
 I spent a significant amount of time attempting to get `gnmi-gateway` working
