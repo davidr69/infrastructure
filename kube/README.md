@@ -223,7 +223,7 @@ spec:
     spec:
       containers:
       - name: web-server
-        image: registry:5000/nginx:1.29.5
+        image: registry:5000/nginx-lavacro:1.0.0
         volumeMounts:
         - name: www
           mountPath: /var/www/lavacro
