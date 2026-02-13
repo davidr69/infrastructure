@@ -238,4 +238,36 @@ spec:
       - name: public-html
         persistentVolumeClaim:
           claimName: david-public-html
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-lavacro-service
+spec:
+  selector:
+    app: nginx-lavacro
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-lavacro-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: www.cloud.lavacro.net
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-lavacro-service
+                port:
+                  number: 80
 ```
