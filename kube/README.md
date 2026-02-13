@@ -138,6 +138,7 @@ http {
 ### PV's
 
 ```yaml
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -151,9 +152,7 @@ spec:
     server: nube.lavacro.net
     path: /var/www/lavacro
   persistentVolumeReclaimPolicy: Retain
-```
-
-```yaml
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -172,6 +171,7 @@ spec:
 ### PVC's
 
 ```yaml
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -185,9 +185,7 @@ spec:
     requests:
       storage: 1Gi
   volumeName: lavacro-www-pv
-```
-
-```yaml
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
