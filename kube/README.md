@@ -86,3 +86,154 @@ data:
         loadbalance
     }
 ```
+
+## web server pod
+
+Obtain image:
+
+```shell
+$ podman pull docker.io/nginx:1.29.5
+$ podman tag docker.io/library/nginx:1.29.5 registry:5000/nginx:1.29.5
+$ podman push registry:5000/nginx:1.29.5
+```
+
+Web server config:
+
+```text
+events {}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    sendfile        on;
+    tcp_nopush      on;
+    keepalive_timeout  65;
+
+    server {
+        listen 80;
+        server_name _;
+
+        root /var/www/lavacro;
+        index index.html;
+
+        location / {
+            try_files $uri $uri/ =404;
+        }
+
+        location /~david/ {
+            alias /home/david/public_html/;
+            autoindex off;
+        }
+
+        access_log /dev/stdout;
+        error_log  /dev/stderr warn;
+
+        add_header X-Content-Type-Options nosniff always;
+        add_header X-Frame-Options SAMEORIGIN always;
+    }
+}
+```
+
+### PV's
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lavacro-www-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadOnlyMany
+  nfs:
+    server: nube.lavacro.net
+    path: /var/lavacro/www
+  persistentVolumeReclaimPolicy: Retain
+```
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: david-public-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadOnlyMany
+  nfs:
+    server: nube.lavacro.net
+    path: /home/david/public_html
+  persistentVolumeReclaimPolicy: Retain
+```
+
+### PVC's
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: www-content
+  namespace: lavacro
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  volumeName: lavacro-www-pv
+```
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: david-public-html
+  namespace: lavacro
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  volumeName: david-public-pv
+```
+
+### image/deployment
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-lavacro
+  namespace: lavacro-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-lavacro
+  template:
+    metadata:
+      labels:
+        app: nginx-lavacro
+    spec:
+      containers:
+      - name: web-server
+        image: registry:5000/nginx:1.29.5
+        volumeMounts:
+        - name: www
+          mountPath: /var/www/lavacro
+          readOnly: true
+        - name: public-html
+          mountPath: /home/david/public_html
+          readOnly: true
+      volumes:
+      - name: www
+        persistentVolumeClaim:
+          claimName: www-content
+      - name: public-html
+        persistentVolumeClaim:
+          claimName: david-public-html
+```
