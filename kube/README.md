@@ -144,12 +144,12 @@ metadata:
   name: lavacro-www-pv
 spec:
   capacity:
-    storage: 1Gi
+    storage: 10Gi
   accessModes:
     - ReadOnlyMany
   nfs:
     server: nube.lavacro.net
-    path: /var/lavacro/www
+    path: /var/www/lavacro
   persistentVolumeReclaimPolicy: Retain
 ```
 
@@ -160,7 +160,7 @@ metadata:
   name: david-public-pv
 spec:
   capacity:
-    storage: 1Gi
+    storage: 10Gi
   accessModes:
     - ReadOnlyMany
   nfs:
@@ -176,13 +176,14 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: www-content
-  namespace: lavacro
+  namespace: lavacro-web
 spec:
+  storageClassName: ""
   accessModes:
-    - ReadWriteMany
+    - ReadOnlyMany
   resources:
     requests:
-      storage: 100Gi
+      storage: 1Gi
   volumeName: lavacro-www-pv
 ```
 
@@ -191,13 +192,14 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: david-public-html
-  namespace: lavacro
+  namespace: lavacro-web
 spec:
+  storageClassName: ""
   accessModes:
-    - ReadWriteMany
+    - ReadOnlyMany
   resources:
     requests:
-      storage: 100Gi
+      storage: 1Gi
   volumeName: david-public-pv
 ```
 
