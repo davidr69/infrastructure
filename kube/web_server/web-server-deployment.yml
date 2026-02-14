@@ -17,9 +17,6 @@ spec:
       containers:
       - name: web-server
         image: registry:5000/nginx-lavacro:1.0.2
-#        securityContext:
-#          runAsGroup: 33
-#          runAsUser: 33
         volumeMounts:
         - name: www
           mountPath: /var/www/lavacro
