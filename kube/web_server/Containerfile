@@ -5,3 +5,8 @@ RUN rm /etc/nginx/conf.d/default.conf
 
 # Copy your config
 COPY nginx.conf /etc/nginx/nginx.conf
+
+# Create errors dir and copy the custom error page into the image so it's available
+# even if /var/www/lavacro is mounted from a PVC/NFS.
+RUN mkdir -p /etc/nginx/errors
+COPY errors/custom_error.html /etc/nginx/errors/custom_error.html

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Error</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #222; background: #fafafa; }
+    .wrap { max-width: 640px; margin: 10% auto; text-align: center; }
+    h1 { font-size: 48px; margin: 0 0 10px; }
+    p { color: #666; }
+    footer { margin-top: 30px; font-size: 12px; color: #999; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Something went wrong</h1>
+    <p>The requested resource could not be found or the server encountered an error.</p>
+    <footer>Reference: <em>Request ID: <span id="req"></span></em></footer>
+  </div>
+  <script>
+    // show a short random id to help correlate logs if available
+    document.getElementById('req').textContent = Math.random().toString(36).slice(2, 9);
+  </script>
+</body>
+</html>
