@@ -1,0 +1,74 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-lavacro
+  namespace: lavacro-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-lavacro
+  template:
+    metadata:
+      labels:
+        app: nginx-lavacro
+    spec:
+      containers:
+      - name: web-server
+        image: registry:5000/nginx-lavacro:1.0.2
+#        securityContext:
+#          runAsGroup: 33
+#          runAsUser: 33
+        volumeMounts:
+        - name: www
+          mountPath: /var/www/lavacro
+          readOnly: true
+        - name: public-html
+          mountPath: /home/david/public_html
+          readOnly: true
+        - name: camera
+          mountPath: /mnt/camera
+          readOnly: true
+      volumes:
+      - name: www
+        persistentVolumeClaim:
+          claimName: www-content
+      - name: public-html
+        persistentVolumeClaim:
+          claimName: david-public-html
+      - name: camera
+        persistentVolumeClaim:
+          claimName: camera-content
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-lavacro-service
+spec:
+  selector:
+    app: nginx-lavacro
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-lavacro-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: www.cloud.lavacro.net
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-lavacro-service
+                port:
+                  number: 80

@@ -55,10 +55,6 @@ type: kubernetes.io/service-account-token
 
 $ kubectl apply -f api-admin-secret.yaml
 
-
-
-
-
 $ kubectl get configmap coredns -n kube-system -o yaml
 
 ```yaml
@@ -99,173 +95,13 @@ $ podman push registry:5000/nginx:1.29.5
 
 Web server config:
 
-```text
-events {}
 
-http {
-    include       mime.types;
-    default_type  application/octet-stream;
+### Storage
 
-    sendfile        on;
-    tcp_nopush      on;
-    keepalive_timeout  65;
+[Persistent Volumes](web_server/persistent-volumes.yml)
 
-    server {
-        listen 80;
-        server_name _;
-
-        root /var/www/lavacro;
-        index index.html;
-
-        location / {
-            try_files $uri $uri/ =404;
-        }
-
-        location /~david/ {
-            alias /home/david/public_html/;
-            autoindex off;
-        }
-
-        access_log /dev/stdout;
-        error_log  /dev/stderr warn;
-
-        add_header X-Content-Type-Options nosniff always;
-        add_header X-Frame-Options SAMEORIGIN always;
-    }
-}
-```
-
-### PV's
-
-```yaml
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: lavacro-www-pv
-spec:
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadOnlyMany
-  nfs:
-    server: nube.lavacro.net
-    path: /var/www/lavacro
-  persistentVolumeReclaimPolicy: Retain
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: david-public-pv
-spec:
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadOnlyMany
-  nfs:
-    server: nube.lavacro.net
-    path: /home/david/public_html
-  persistentVolumeReclaimPolicy: Retain
-```
-
-### PVC's
-
-```yaml
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: www-content
-  namespace: lavacro-web
-spec:
-  storageClassName: ""
-  accessModes:
-    - ReadOnlyMany
-  resources:
-    requests:
-      storage: 1Gi
-  volumeName: lavacro-www-pv
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: david-public-html
-  namespace: lavacro-web
-spec:
-  storageClassName: ""
-  accessModes:
-    - ReadOnlyMany
-  resources:
-    requests:
-      storage: 1Gi
-  volumeName: david-public-pv
-```
+[Persistent Volume Claims](web_server/pvc.yml)
 
 ### image/deployment
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx-lavacro
-  namespace: lavacro-web
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: nginx-lavacro
-  template:
-    metadata:
-      labels:
-        app: nginx-lavacro
-    spec:
-      containers:
-      - name: web-server
-        image: registry:5000/nginx-lavacro:1.0.0
-        volumeMounts:
-        - name: www
-          mountPath: /var/www/lavacro
-          readOnly: true
-        - name: public-html
-          mountPath: /home/david/public_html
-          readOnly: true
-      volumes:
-      - name: www
-        persistentVolumeClaim:
-          claimName: www-content
-      - name: public-html
-        persistentVolumeClaim:
-          claimName: david-public-html
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-lavacro-service
-spec:
-  selector:
-    app: nginx-lavacro
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-  type: LoadBalancer
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: nginx-lavacro-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-spec:
-  rules:
-    - host: www.cloud.lavacro.net
-      http:
-        paths:
-          - path: "/"
-            pathType: Prefix
-            backend:
-              service:
-                name: nginx-lavacro-service
-                port:
-                  number: 80
-```
+[Deployment](web_server/web-server-deployment.yml)

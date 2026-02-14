@@ -1,0 +1,42 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: www-content
+  namespace: lavacro-web
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: lavacro-www-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: david-public-html
+  namespace: lavacro-web
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: david-public-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: camera-content
+  namespace: lavacro-web
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: camera-pv
