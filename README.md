@@ -23,7 +23,7 @@ I have 4 onsite servers, and each is running one or more services:
 [Docker](docker)
 - redis
 - gitea
-- registry
+- [registry](registry/README.md)
 
 ## automation host ##
 
